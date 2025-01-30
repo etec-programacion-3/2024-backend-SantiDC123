@@ -22,7 +22,8 @@ export const registrarUsuario = async (req, res) => {
                 nombre,
                 email,
                 password: hashPassword,
-                rol: "cliente"
+                rol: "cliente",
+                carrito: []
             })
 
             const usuarioGuardado = await nuevoUsuario.save();
@@ -47,6 +48,23 @@ export const loginUsuario = async (req, res) => {
     }else{
         try {
             // proceso de login.
+            const usuarioEncontrado = await User.findOne({email});
+
+            if(!usuarioEncontrado) return res.status(400).json({message:"El correo ingresado es incorrecto."})
+            
+            const passValida = await bcrypt.compare(password, usuarioEncontrado.password);
+            if(!passValida) return res.status(400).json({message:"La contraseña es incorrecta."})
+
+            // logeo exitoso
+            const token = crearTokenDeAcceso({ id: usuarioEncontrado._id, nombre: usuarioEncontrado.nombre })
+            res.cookie('token', token)
+
+            res.json({
+                id: usuarioEncontrado._id,
+                nombre: usuarioEncontrado.nombre,
+                email: usuarioEncontrado.email,
+                carrito: usuarioEncontrado.carrito
+            })
         } catch (error) {
             res.status(500).json({ message: error.message })
         }
@@ -56,5 +74,6 @@ export const loginUsuario = async (req, res) => {
 }
 
 export const cerrarSesionUsuario = async (req, res) => {
-    res.json({ message: 'sesion finalizada!' })
+    res.clearCookie('token');
+    return res.sendStatus(200)
 }

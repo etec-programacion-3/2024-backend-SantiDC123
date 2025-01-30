@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
-        unique:true,
+        unique: true,
         trim: true
     },
     password: {
@@ -17,14 +17,25 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    rol:  {
+    rol: {
         type: String,
         required: true,
         trim: true
-    }
+    },
+    cart: [
+        {
+            producto: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Producto"
+            },
+            cantidad: {
+                type: Number
+            }
+        }
+    ]
 },
-{
-    timestamps:true
-})
+    {
+        timestamps: true
+    })
 
 export default mongoose.model('User', userSchema)
