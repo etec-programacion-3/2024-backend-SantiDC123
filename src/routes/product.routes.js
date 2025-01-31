@@ -5,4 +5,5 @@ const router = Router();
 
 router.post('/product', crearProducto)
 router.get('/product', listarProductos)
+
 export default router;
