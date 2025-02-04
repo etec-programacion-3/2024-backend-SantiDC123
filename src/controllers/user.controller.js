@@ -1,6 +1,8 @@
+import { TOKEN_SECRET } from "../config.js";
 import { crearTokenDeAcceso } from "../libs/jwt.js";
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 export const registrarUsuario = async (req, res) => {
 
@@ -14,10 +16,10 @@ export const registrarUsuario = async (req, res) => {
 
         try {
 
-            const usuarioExistente = await User.findOne({email: email})
-            if(usuarioExistente) return res.status(400).json({message:"El email ingresado ya está registrado."})
+            const usuarioExistente = await User.findOne({ email: email })
+            if (usuarioExistente) return res.status(400).json({ message: "El email ingresado ya está registrado." })
 
-            const hashPassword = await bcrypt.hash(password,10)
+            const hashPassword = await bcrypt.hash(password, 10)
             const nuevoUsuario = new User({
                 nombre,
                 email,
@@ -42,21 +44,22 @@ export const registrarUsuario = async (req, res) => {
 }
 
 export const loginUsuario = async (req, res) => {
-    const {email, password } = req.body;
+    const { email, password } = req.body;
     if (email == '' || password == '') {
         res.status(400).json({ message: 'Error: todos los campos deben ser completados.' })
-    }else{
+    } else {
         try {
             // proceso de login.
-            const usuarioEncontrado = await User.findOne({email});
+            const usuarioEncontrado = await User.findOne({ email });
 
-            if(!usuarioEncontrado) return res.status(400).json({message:"El correo ingresado es incorrecto."})
-            
+            if (!usuarioEncontrado) return res.status(400).json({ message: "El correo ingresado es incorrecto." })
+
             const passValida = await bcrypt.compare(password, usuarioEncontrado.password);
-            if(!passValida) return res.status(400).json({message:"La contraseña es incorrecta."})
+            if (!passValida) return res.status(400).json({ message: "La contraseña es incorrecta." })
 
             // logeo exitoso
-            const token = crearTokenDeAcceso({ id: usuarioEncontrado._id, nombre: usuarioEncontrado.nombre })
+            const token = await crearTokenDeAcceso({id:usuarioEncontrado._id,nombre: usuarioEncontrado.nombre})
+           
             res.cookie('token', token)
 
             res.json({
@@ -76,4 +79,20 @@ export const loginUsuario = async (req, res) => {
 export const cerrarSesionUsuario = async (req, res) => {
     res.clearCookie('token');
     return res.sendStatus(200)
+}
+
+export const verificarToken = (req, res) => {
+    const { token } = req.cookies;
+    
+    if (!token) return res.status(401).json({ message: "Usuario no logeado." })
+        
+    jwt.verify(token, TOKEN_SECRET, async (err, user) => {
+        
+        if (err) return res.status(401).json({ message: "Token no válido." })
+            
+        const userFound = await User.findById(user.id);
+        if (!userFound) return res.status(401).json({ message: "Usuario no encontrado en la BD." })
+
+        return res.json({ id: userFound.id, nombre: userFound.nombre, cart: userFound.cart })
+    })
 }
