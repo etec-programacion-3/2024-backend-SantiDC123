@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { cerrarSesionUsuario, loginUsuario, registrarUsuario, verificarToken } from "../controllers/user.controller.js";
+import { actualizarCarrito, cerrarSesionUsuario, loginUsuario, obtenerCarrito, registrarUsuario, verificarToken } from "../controllers/user.controller.js";
 
 const router = Router();
 
@@ -11,4 +11,7 @@ router.post('/logout', cerrarSesionUsuario)
 
 
 router.get('/verificar', verificarToken)
+
+router.post('/carrito', actualizarCarrito)
+router.get('/carrito', obtenerCarrito)
 export default router;

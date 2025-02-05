@@ -20,7 +20,6 @@ export const crearProducto = async (req,res) => {
             res.json({ message: 'Producto Guardado!', productoGuardado })
         } catch (error) {
             console.log(error.message);
-            
         }
     }
 

@@ -58,8 +58,8 @@ export const loginUsuario = async (req, res) => {
             if (!passValida) return res.status(400).json({ message: "La contraseña es incorrecta." })
 
             // logeo exitoso
-            const token = await crearTokenDeAcceso({id:usuarioEncontrado._id,nombre: usuarioEncontrado.nombre})
-           
+            const token = await crearTokenDeAcceso({ id: usuarioEncontrado._id, nombre: usuarioEncontrado.nombre })
+
             res.cookie('token', token)
 
             res.json({
@@ -83,16 +83,78 @@ export const cerrarSesionUsuario = async (req, res) => {
 
 export const verificarToken = (req, res) => {
     const { token } = req.cookies;
-    
+
     if (!token) return res.status(401).json({ message: "Usuario no logeado." })
-        
+
     jwt.verify(token, TOKEN_SECRET, async (err, user) => {
-        
+
         if (err) return res.status(401).json({ message: "Token no válido." })
-            
+
         const userFound = await User.findById(user.id);
         if (!userFound) return res.status(401).json({ message: "Usuario no encontrado en la BD." })
 
         return res.json({ id: userFound.id, nombre: userFound.nombre, cart: userFound.cart })
     })
+}
+
+
+
+export const actualizarCarrito = async (req, res) => {
+    const { cart } = req.body
+    // ACCEDER AL ID DEL USUARIO LOGEADO
+    const { token } = req.cookies;
+    if (!token) return res.status(401).json({ message: "Usuario no logeado." })
+    jwt.verify(token, TOKEN_SECRET, async (err, user) => {
+
+        if (err) return res.status(401).json({ message: "Token no válido." })
+
+        const userFound = await User.findById(user.id);
+        if (!userFound) return res.status(401).json({ message: "Usuario no encontrado en la BD." })
+
+        const idUsuario = user.id;
+
+        console.log(cart);
+        console.log(idUsuario);
+
+        try {
+            const actualizacion = await User.findByIdAndUpdate(idUsuario, { cart: cart }, { new: true });
+            console.log(actualizacion);
+            res.status(200).json({ message: 'Carrito actualizado' })
+
+        } catch (error) {
+            console.log(error);
+            return res.status(401).json({ message: "Ha ocurrido un error al intentar modificar el carrito" })
+        }
+    })
+
+
+}
+
+
+export const obtenerCarrito = async (req, res) => {
+    // ACCEDER AL ID DEL USUARIO LOGEADO
+    const { token } = req.cookies;
+    if (!token) return res.status(401).json({ message: "Usuario no logeado." })
+    jwt.verify(token, TOKEN_SECRET, async (err, user) => {
+
+        if (err) return res.status(401).json({ message: "Token no válido." })
+
+        const userFound = await User.findById(user.id);
+        if (!userFound) return res.status(401).json({ message: "Usuario no encontrado en la BD." })
+
+        const idUsuario = user.id;
+
+        try {
+            const usuario = await User.findById(idUsuario)
+
+    
+            res.status(200).json( usuario.cart )
+
+        } catch (error) {
+            console.log(error);
+            return res.status(401).json({ message: "Ha ocurrido un error al intentar accerder a el carrito" })
+        }
+    })
+
+
 }
