@@ -3,6 +3,7 @@ import cors from 'cors'
 
 import userRoutes from './routes/user.routes.js'
 import productRoutes from './routes/product.routes.js'
+import saleRoutes from './routes/sale.routes.js'
 import { connectDB } from './db.js';
 import cookieParser from 'cookie-parser';
 
@@ -18,6 +19,7 @@ app.use(cookieParser())
 
 app.use(productRoutes)
 app.use(userRoutes)
+app.use(saleRoutes)
 
 connectDB();
 app.listen(8080, console.log('Server corriendo en el puerto 8080'))
