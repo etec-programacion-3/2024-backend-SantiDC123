@@ -31,7 +31,7 @@ export const registrarUsuario = async (req, res) => {
 
             const usuarioGuardado = await nuevoUsuario.save();
 
-            const token = crearTokenDeAcceso({ id: usuarioGuardado._id, nombre: usuarioGuardado.nombre })
+            const token = await crearTokenDeAcceso({ id: usuarioGuardado._id, nombre: usuarioGuardado.nombre })
             res.cookie('token', token)
 
             res.json({ message: 'usuario Registrado!', usuario: usuarioGuardado })

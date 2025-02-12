@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 
-const productSchema = new mongoose.Schema({
+const saleSchema = new mongoose.Schema({
     fecha_venta: {
         type: Date,
         required: true,
@@ -33,4 +33,4 @@ const productSchema = new mongoose.Schema({
         timestamps: true
     })
 
-export default mongoose.model('Sale', productSchema)
+export default mongoose.model('Sale', saleSchema)
