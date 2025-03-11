@@ -28,7 +28,7 @@ export const crearProducto = async (req,res) => {
 
 export const listarProductos = async (req,res) => {
     try {
-        const listadoProductos = await Product.find()
+        const listadoProductos = await Product.find();
         res.json(listadoProductos)
     } catch (error) {
         return res.status(500).json({ message: "Ha ocurrido un error al intentar acceder al listado de productos."})

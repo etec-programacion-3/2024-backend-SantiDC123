@@ -46,6 +46,7 @@ export const registrarUsuario = async (req, res) => {
 
 export const loginUsuario = async (req, res) => {
     const { email, password } = req.body;
+
     if (email == '' || password == '') {
         res.status(400).json({ message: 'Error: todos los campos deben ser completados.' })
     } else {
@@ -56,6 +57,7 @@ export const loginUsuario = async (req, res) => {
             if (!usuarioEncontrado) return res.status(400).json({ message: "El correo ingresado es incorrecto." })
 
             const passValida = await bcrypt.compare(password, usuarioEncontrado.password);
+            
             if (!passValida) return res.status(400).json({ message: "La contraseña es incorrecta." })
 
             // logeo exitoso
