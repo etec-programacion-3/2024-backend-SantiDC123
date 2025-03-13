@@ -23,7 +23,8 @@ export const registrarVenta = async (req, res) => {
         // REGISTRAR LA VENTA
 
         try {
-           
+            // declaramos el listado de errores inicialmente vacío
+            let erroresSale=[];
             // ANTES DE REGISTRAR LA VENTA DEBEMOS VERIFICAR EL STOCK DE CADA PRODUCTO.
             for (const prodDetalle of detalle) {
                 let idProd = prodDetalle.product;
@@ -32,19 +33,33 @@ export const registrarVenta = async (req, res) => {
                 console.log(cantidadDetalle);
                 const producto = await productModel.findById(idProd);
                 if (cantidadDetalle > producto.stock) {
-                    return res.status(400).json({ message: `Error: stock superado para el producto ${producto.titulo} `, producto })
+                    erroresSale.push({ message: `Error: stock superado para el producto ${producto.titulo}. Stock disponible: ${producto.stock} `, producto })
+                    /*return res.status(400).json({ message: `Error: stock superado para el producto ${producto.titulo} - stock disponible: ${producto.stock} `, producto })*/
                 }
             }
-            
+            // verifico si hubo algun error con los stocks de los productos
+            if(erroresSale.length > 0) return res.status(400).json(erroresSale);
+
             /*
             DESCONTAR EL STOCK DE CADA PRODUCTO EN LA BASE DE DATOS, CUANDO DE REALICE LA VENTA.
-                        const nuevaVenta = new Sale({
-                            total,
-                            id_comprador: idUsuario,
-                            detalle,
-                        })
-                        const ventaGuardada = await nuevaVenta.save(); */
-            res.status(200).json({ message: 'Venta Procesada!' })
+                        */
+            const nuevaVenta = new Sale({
+                total,
+                id_comprador: idUsuario,
+                detalle,
+            })
+            const ventaGuardada = await nuevaVenta.save();
+            // DESCONTAR STOCK DE CADA PRODUCTO EN LA BASE DE DATOS
+            for (const prodDetalle of detalle) {
+                // BUSCO EL PRODUCTO DEL DETALLE DENTRO DE LA BASE DATOS Y ACTUALIZO SU STOCK.
+                const idProd = prodDetalle.product;
+                const prodEncontrado = await productModel.findById(idProd);
+                prodEncontrado.stock = prodEncontrado.stock - parseInt(prodDetalle.cantidad);
+                await prodEncontrado.save();
+            }
+
+
+            res.status(200).json(ventaGuardada)
         } catch (error) {
             console.log(error.message);
         }
