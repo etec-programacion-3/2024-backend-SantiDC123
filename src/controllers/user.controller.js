@@ -69,6 +69,7 @@ export const loginUsuario = async (req, res) => {
                 id: usuarioEncontrado._id,
                 nombre: usuarioEncontrado.nombre,
                 email: usuarioEncontrado.email,
+                rol:usuarioEncontrado.rol,
                 carrito: usuarioEncontrado.carrito
             })
         } catch (error) {
@@ -96,7 +97,7 @@ export const verificarToken = (req, res) => {
         const userFound = await User.findById(user.id);
         if (!userFound) return res.status(401).json({ message: "Usuario no encontrado en la BD." })
 
-        return res.json({ id: userFound.id, nombre: userFound.nombre, cart: userFound.cart })
+        return res.json({ id: userFound.id, nombre: userFound.nombre, rol:userFound.rol ,cart: userFound.cart })
     })
 }
 

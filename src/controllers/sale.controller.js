@@ -29,7 +29,7 @@ export const registrarVenta = async (req, res) => {
             for (const prodDetalle of detalle) {
                 let idProd = prodDetalle.product;
                 // MODIFICAR ESTA LÍNEA.
-                let cantidadDetalle = parseInt(prodDetalle.cantidad) + 1;
+                let cantidadDetalle = parseInt(prodDetalle.cantidad);
                 console.log(cantidadDetalle);
                 const producto = await productModel.findById(idProd);
                 if (cantidadDetalle > producto.stock) {
