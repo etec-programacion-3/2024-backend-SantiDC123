@@ -2,11 +2,14 @@ import Product from "../models/product.model.js";
 
 
 export const crearProducto = async (req, res) => {
-    const { titulo, descripcion, precio, stock, categoria, portada } = req.body;
+    const { titulo, descripcion, precio, stock, categoria } = req.body;
+    const portada = req.file?.filename || '';
+    //console.log(portada);
 
-    if (titulo == '' || descripcion == '' || precio == '' || stock == '' || categoria == '' || portada == '') {
+    if (!titulo || !descripcion || !precio || !stock || !categoria || !portada) {
         res.status(400).json({ message: 'Error: todos los campos deben ser completados.' })
     } else {
+
         try {
             const nuevoProducto = new Product({
                 titulo,
@@ -16,11 +19,16 @@ export const crearProducto = async (req, res) => {
                 categoria,
                 portada
             })
+            console.log('Producto creado');
+            
             const productoGuardado = await nuevoProducto.save();
-            res.json({ message: 'Producto Guardado!', productoGuardado })
+            console.log(productoGuardado);
+            
+            res.status(200).json(productoGuardado)
         } catch (error) {
-            console.log(error.message);
+            console.log(error);
         }
+
     }
 
 }
