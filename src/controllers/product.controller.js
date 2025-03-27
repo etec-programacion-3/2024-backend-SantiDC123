@@ -1,5 +1,5 @@
 import Product from "../models/product.model.js";
-
+import Sale from "../models/sale.model.js";
 
 export const crearProducto = async (req, res) => {
     const { titulo, descripcion, precio, stock, categoria } = req.body;
@@ -97,12 +97,18 @@ export const listarDetalleProducto = async (req, res) => {
 export const eliminarProducto = async (req, res) => {
     const { id } = req.params;
     try {
+        // verificar si el producto ya está asociado a una venta.
+        const productosProcesados = await Sale.find({ 'detalle.product': id })
+        if (productosProcesados.length > 0) return res.status(400).json({ message: "El producto que intenta eliminar ya está asociado a una venta." })
+
         const producto = await Product.findById(id)
         if (!producto) return res.status(404).json({ message: 'No se ha encontrado el producto' });
         const productoEliminado = await Product.findByIdAndDelete(id);
-        res.sendStatus(204)
+        res.sendStatus(204);
+
     } catch (error) {
         return res.status(500).json({ message: "Ha ocurrido un error al eliminar el producto." })
 
     }
+
 }

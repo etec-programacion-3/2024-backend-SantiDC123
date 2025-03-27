@@ -28,6 +28,11 @@ const productSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
+    },
+    activo: {
+        type: Boolean,
+        default: true,
+        required: true,
     }
     
 },
