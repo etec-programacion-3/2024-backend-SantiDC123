@@ -1,5 +1,9 @@
+import { TOKEN_SECRET } from "../config.js";
 import Product from "../models/product.model.js";
 import Sale from "../models/sale.model.js";
+import Stock from "../models/stock.model.js";
+import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
 
 export const crearProducto = async (req, res) => {
     const { titulo, descripcion, precio, stock, categoria } = req.body;
@@ -60,6 +64,35 @@ export const modificarProducto = async (req, res) => {
                 portada
             }
 
+            const producto = await Product.findById(id)
+            if (!producto) return res.status(404).json({ message: 'No se ha encontrado el producto' });
+
+            if (producto.stock != productoModificado.stock) {
+                const { token } = req.cookies;
+
+                if (!token) return res.status(401).json({ message: "Usuario no logeado." })
+
+                jwt.verify(token, TOKEN_SECRET, async (err, user) => {
+
+                    if (err) return res.status(401).json({ message: "Token no válido." })
+
+                    const userFound = await User.findById(user.id);
+                    if (!userFound) return res.status(401).json({ message: "Usuario no encontrado en la BD." })
+
+                    const nuevoHistorialStock = new Stock({
+                        id_usuario: userFound.id,
+                        producto: producto.id,
+                        valor_previo: producto.stock,
+                        valor_actual: productoModificado.stock,
+                        descripcion: 'Stock modificado desde el panel de administración.'
+                    })
+                    const historialGuardado = await nuevoHistorialStock.save();
+                    console.log(historialGuardado);
+
+                })
+
+
+            }
 
             const productoActualizado = await Product.findByIdAndUpdate(id, productoModificado, { new: true });
             if (!productoActualizado) return res.status(404).json({ message: 'No se ha encontrado el producto' });
@@ -75,6 +108,14 @@ export const modificarProducto = async (req, res) => {
 
 
 export const listarProductos = async (req, res) => {
+    try {
+        const listadoProductos = await Product.find({ activo: { $ne: false } });
+        res.json(listadoProductos)
+    } catch (error) {
+        return res.status(500).json({ message: "Ha ocurrido un error al intentar acceder al listado de productos." })
+    }
+}
+export const listarProductosAdmin = async (req, res) => {
     try {
         const listadoProductos = await Product.find();
         res.json(listadoProductos)
@@ -111,4 +152,19 @@ export const eliminarProducto = async (req, res) => {
 
     }
 
+}
+
+export const modificarEstadoActivo = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const producto = await Product.findById(id)
+        if (!producto) return res.status(404).json({ message: 'No se ha encontrado el producto' });
+
+        const productoActualizado = await Product.findByIdAndUpdate(id, { activo: !producto.activo }, { new: true });
+        res.status(200).json(productoActualizado)
+
+    } catch (error) {
+        return res.status(500).json({ message: "Ha ocurrido un error al cambiar el estado del producto." })
+
+    }
 }
