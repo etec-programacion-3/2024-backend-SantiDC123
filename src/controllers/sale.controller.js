@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { TOKEN_SECRET } from "../config.js";
 import User from "../models/user.model.js";
 import productModel from "../models/product.model.js";
+import Stock from "../models/stock.model.js";
 
 export const registrarVenta = async (req, res) => {
 
@@ -30,7 +31,6 @@ export const registrarVenta = async (req, res) => {
                 let idProd = prodDetalle.product;
                 // MODIFICAR ESTA LÍNEA.
                 let cantidadDetalle = parseInt(prodDetalle.cantidad);
-                console.log(cantidadDetalle);
                 const producto = await productModel.findById(idProd);
                 if (cantidadDetalle > producto.stock) {
                     erroresSale.push({ message: `Error: stock superado para el producto ${producto.titulo}. Stock disponible: ${producto.stock} `, producto })
@@ -56,10 +56,23 @@ export const registrarVenta = async (req, res) => {
                 // BUSCO EL PRODUCTO DEL DETALLE DENTRO DE LA BASE DATOS Y ACTUALIZO SU STOCK.
                 const idProd = prodDetalle.product;
                 const prodEncontrado = await productModel.findById(idProd);
-                prodEncontrado.stock = prodEncontrado.stock - parseInt(prodDetalle.cantidad);
+                const stockActual =  prodEncontrado.stock;
+                const stockActualizado = prodEncontrado.stock - parseInt(prodDetalle.cantidad);
+                prodEncontrado.stock = stockActualizado
                 await prodEncontrado.save();
+                // REGISTRANDO EL CAMBIO DE STOCK EN EL HISTORIAL DE LOS PRODUCTOS CUANDO VENDEMOS.
+         
+                const nuevoHistorialStock = new Stock({
+                    id_usuario: idUsuario,
+                    producto: idProd,
+                    valor_previo: stockActual,
+                    valor_actual: stockActualizado,
+                    descripcion: 'Stock modificado por venta del producto.'
+                })
+                const historialStockGuardado = await nuevoHistorialStock.save();
+                console.log(historialStockGuardado);
+                
             }
-
 
             res.status(200).json(ventaGuardada)
         } catch (error) {

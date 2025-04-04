@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 
 import userRoutes from './routes/user.routes.js'
+import stockRoutes from './routes/stock.routes.js'
 import productRoutes from './routes/product.routes.js'
 import saleRoutes from './routes/sale.routes.js'
 import { connectDB } from './db.js';
@@ -27,6 +28,7 @@ app.use(cookieParser())
 app.use(productRoutes)
 app.use(userRoutes)
 app.use(saleRoutes)
+app.use(stockRoutes)
 
 connectDB();
 app.listen(8080, console.log('Server corriendo en el puerto 8080'))
