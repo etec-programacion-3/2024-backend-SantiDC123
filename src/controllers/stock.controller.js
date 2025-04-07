@@ -2,6 +2,7 @@ import Stock from "../models/stock.model.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { TOKEN_SECRET } from "../config.js";
+import productModel from "../models/product.model.js";
 
 
 export const listarHistorialStock = async (req, res) => {
@@ -17,7 +18,12 @@ export const listarHistorialStock = async (req, res) => {
             const userFound = await User.findById(user.id);
             if (!userFound) return res.status(401).json({ message: "Usuario no encontrado en la BD." })
 
-            const historialStock = await Stock.find().sort({ 'fecha_modificacion': -1 });
+            const historialStock = await Stock.find()
+                .populate({
+                    path: 'producto',
+                    model: productModel
+                })
+                .sort({ 'fecha_modificacion': -1 });
             res.json(historialStock)
 
         })
